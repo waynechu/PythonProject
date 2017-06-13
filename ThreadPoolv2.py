@@ -32,12 +32,11 @@ class Worker(Thread):
                 try:
                     task.do()
                     task.task_complete()
-                except:
-                    print("Exception!")
+                except Exception as taskex:
+                    print("__exception: ", str(taskex), taskex.args)
 
                 self.tasks.task_done()
-            except:
-                # no task found
+            except: # no item to get
                 pass
 
     def stop(self):
@@ -76,16 +75,15 @@ class SleepTask(Task):
         for arg in self.kargs:
             if arg == "delay":
                 delay = self.kargs[arg]
-        if delay == 0:
-            return False
-        print("Sleep for", delay, "second(s)")
-        sleep(delay)
+        if delay > 0:
+            print("Sleep for", delay, "second(s)")
+            sleep(delay)
         return True
 
 if __name__ == '__main__':
  
     from random import randrange
-    delays = [randrange(1, 2) for i in range(100)]
+    delays = [randrange(1, 4) for i in range(100)]
     
     from time import sleep
 
