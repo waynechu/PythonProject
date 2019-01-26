@@ -28,7 +28,7 @@ class DNSQueryTask(threadpool.Task):
                 for rr in answer:
                     print(qname, qtype, rr)
             except Exception as ex:
-                print(ex.arg)
+                print(ex)
     
         return True
 
