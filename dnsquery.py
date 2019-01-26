@@ -1,41 +1,55 @@
 from random import randrange
 from time import sleep
 
+import csv
 import threadpool
+import dns.resolver
+import dns.message
+import dns.rdataclass
+import dns.rdatatype
+import dns.query
 
-class SleepTask(threadpool.Task):
+class DNSQueryTask(threadpool.Task):
 
     def do(self):
-        delay = 0
+
         for arg in self.kargs:
-            if arg == "delay":
-                delay = self.kargs[arg]
-        if delay > 0:
-            print("Sleep for", delay, "second(s)")
-            sleep(delay)
+            if arg == "qtype":
+                qtype = self.kargs[arg]
+            if arg == "qname":
+                qname = self.kargs[arg]
+
+        resolver = dns.resolver.Resolver(configure=False)
+        resolver.nameservers = ['8.8.8.8']
+
+        for i in range(10):
+            try:
+                answer = resolver.query(qname, qtype)
+                for rr in answer:
+                    print(qname, qtype, rr)
+            except Exception as ex:
+                print(ex.arg)
+    
         return True
 
 if __name__ == '__main__':
  
-    delays = [randrange(1, 4) for i in range(20)]
+    csvfile = open('pythonproject\querylist.csv')
+    reader = csv.reader(csvfile)
 
-    # 1) Init a Thread pool with the desired number of threads
-    pool = threadpool.ThreadPool(20, 50)
-    pool.start_pool()
-    
-    for i, d in enumerate(delays):
-        # print the percentage of tasks placed in the queue
-        print("Adding a new task: wait_delay(delay=", d, ")")
-        
-        # 2) Add the task to the queue
-        task = SleepTask(delay = d)
-        pool.add_task(task)
-        task.wait_for_task_done(0.001)
-    
-    # 3) Wait for completion
+    thdpool = threadpool.ThreadPool(10, 20)
+    thdpool.start_pool()
+
+    try:
+        for row in reader:
+            task = DNSQueryTask(qtype=row[0], qname=row[1])
+            thdpool.add_task(task)
+    except csv.Error as ex:
+        print(ex.args)
+
     print("Waiting for all tasks to complete...")
-    pool.wait_completion()
+    thdpool.wait_completion()
 
     print("Task complete, stop thread pool")
-    pool.stop_pool()
+    thdpool.stop_pool()
     print("Thread pool stopped successfully")
