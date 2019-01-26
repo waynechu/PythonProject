@@ -59,7 +59,6 @@ class ThreadPool:
             self.threads[idx].stop()
         for idx in range(len(self.threads)):
             self.threads[idx].join()
-            print(self.threads[idx].name, "stopped")
 
     def add_task(self, task):
         self.tasks.put(task)
