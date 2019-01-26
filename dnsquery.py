@@ -3,6 +3,7 @@ from time import sleep
 
 import csv
 import time
+import logging
 import threadpool
 import dns.resolver
 import dns.message
@@ -34,18 +35,23 @@ class DNSQueryTask(threadpool.Task):
                 t1_start = time.perf_counter()
                 answer = resolver.query(qname, qtype)
                 t1_stop = time.perf_counter()
-                print("performance = {0:.6f} sec".format(t1_stop - t1_start))
+                logging.info("performance = {0:.6f} sec".format(t1_stop - t1_start))
                 for rr in answer:
-                    print(i, qname, qtype, rr)
+                    logging.info("{} {} {} {}".format(i, qname, qtype, rr))
             except Exception as ex:
                 t1_stop = time.perf_counter()
                 t2_stop = time.process_time()
-                print(ex, "performance = {0:.6f} sec".format(t1_stop - t1_start))
+                #logging.warning(ex.args[0])
+                logging.warning("Exception - performance = {0:.6f} sec".format(t1_stop - t1_start))
     
         return True
 
 if __name__ == '__main__':
- 
+
+    logging.basicConfig(level=logging.DEBUG, format="%(asctime)s-%(levelname)s: %(message)s", datefmt='%Y%m%d-%H%M%S')
+
+    logging.info("dnsquery started...")
+
     csvfile = open('pythonproject\querylist.csv')
     reader = csv.reader(csvfile)
 
@@ -63,3 +69,5 @@ if __name__ == '__main__':
 
     thdpool.wait_completion()
     thdpool.stop_pool()
+
+    logging.info("dnsquery complete...")
