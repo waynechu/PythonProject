@@ -24,8 +24,8 @@ class DNSQueryTask(threadpool.Task):
                 qcount = int(self.kargs[arg])
 
         resolver = dns.resolver.Resolver(configure=False)
-        resolver.nameservers = ['27.126.245.88']
-        #resolver.nameservers = ['1.1.1.1']
+        #resolver.nameservers = ['27.126.245.88']
+        resolver.nameservers = ['1.1.1.1']
         #resolver.nameservers = ['8.8.8.8']
 
         for i in range(qcount):
@@ -47,22 +47,30 @@ class DNSQueryTask(threadpool.Task):
 
 if __name__ == '__main__':
 
-    logging.basicConfig(level=logging.DEBUG, format="%(asctime)s-%(levelname)s: %(message)s", datefmt='%Y%m%d-%H%M%S')
+    logging.basicConfig(level=logging.DEBUG, format="%(asctime)s-%(threadName)10s-%(levelname)s: %(message)s", datefmt="%Y%m%d-%H%M%S")
 
     logging.info("dnsquery started...")
 
     csvfile = open("pythonproject\\querylist.csv")
     reader = csv.reader(csvfile)
 
-    thdpool = threadpool.ThreadPool(3, 10)
+    thdpool = threadpool.ThreadPool(10, 10)
     thdpool.start_pool()
 
     try:
         for row in reader:
             task = DNSQueryTask(qtype = row[0], qname = row[1], qcount = 100)
             thdpool.add_task(task)
-            #thdpool.add_task(task)
-            #thdpool.add_task(task)
+            thdpool.add_task(task)
+            thdpool.add_task(task)
+            thdpool.add_task(task)
+            thdpool.add_task(task)
+            thdpool.add_task(task)
+            thdpool.add_task(task)
+            thdpool.add_task(task)
+            thdpool.add_task(task)
+            thdpool.add_task(task)
+
     except csv.Error as ex:
         print(ex.args)
 
