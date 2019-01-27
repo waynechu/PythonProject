@@ -10,31 +10,6 @@ import dns.rdatatype
 import dns.query
 import dns.exception
 
-def main(argv):
-
-    logging.basicConfig(level=logging.DEBUG, format="%(asctime)s-%(threadName)10s-%(levelname)s: %(message)s", datefmt="%Y%m%d-%H%M%S")
-
-    logging.info("dnsquery started...")
-
-    csvfile = open("pythonproject\\querylist.csv")
-    reader = csv.reader(csvfile)
-
-    thdpool = threadpool.ThreadPool(10, 10)
-    thdpool.start_pool()
-
-    try:
-        for row in reader:
-            qtask = DNSQueryTask(qtype = row[0], qname = row[1], qcount = 5)
-            thdpool.add_task(qtask)
-
-    except csv.Error as ex:
-        print(ex.args)
-
-    thdpool.wait_completion()
-    thdpool.stop_pool()
-
-    logging.info("dnsquery complete...")
-
 class DNSQueryTask(threadpool.Task):
 
     def do(self):
@@ -72,4 +47,28 @@ class DNSQueryTask(threadpool.Task):
         return True
 
 if __name__ == '__main__':
-    main(sys.argv)
+
+    print(sys.argv)
+
+    logging.basicConfig(level=logging.DEBUG, format="%(asctime)s-%(threadName)10s-%(levelname)s: %(message)s", datefmt="%Y%m%d-%H%M%S")
+
+    logging.info("dnsquery started...")
+
+    csvfile = open("pythonproject\\querylist.csv")
+    reader = csv.reader(csvfile)
+ 
+    thdpool = threadpool.ThreadPool(10, 10)
+    thdpool.start_pool()
+
+    try:
+        for row in reader:
+            qtask = DNSQueryTask(qtype = row[0], qname = row[1], qcount = 5)
+            thdpool.add_task(qtask)
+
+    except csv.Error as ex:
+        print(ex.args)
+
+    thdpool.wait_completion()
+    thdpool.stop_pool()
+
+    logging.info("dnsquery complete...")
