@@ -1,6 +1,3 @@
-from random import randrange
-from time import sleep
-
 import csv
 import time
 import logging
@@ -38,9 +35,11 @@ class DNSQueryTask(threadpool.Task):
                 time_stop = time.perf_counter()
                 for rr in answer:
                     logging.info("%2d %s %s %15s - performace = %3.3f sec", i, qname, qtype, rr, time_stop - time_start)
+
             except dns.exception.DNSException as dnsex:
                 time_stop = time.perf_counter()
                 logging.warning("%s - performance = %3.3f sec", dnsex.msg, time_stop - time_start)
+
             except Exception as ex:
                 print(ex)
     
