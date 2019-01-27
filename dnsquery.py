@@ -10,6 +10,7 @@ import dns.message
 import dns.rdataclass
 import dns.rdatatype
 import dns.query
+import dns.exception
 
 class DNSQueryTask(threadpool.Task):
 
@@ -32,17 +33,16 @@ class DNSQueryTask(threadpool.Task):
 
         for i in range(qcount):
             try:
-                t1_start = time.perf_counter()
+                time_start = time.perf_counter()
                 answer = resolver.query(qname, qtype)
-                t1_stop = time.perf_counter()
-                logging.info("performance = {0:.6f} sec".format(t1_stop - t1_start))
+                time_stop = time.perf_counter()
                 for rr in answer:
-                    logging.info("{} {} {} {}".format(i, qname, qtype, rr))
+                    logging.info("%2d %s %s %15s - performace = %3.3f sec", i, qname, qtype, rr, time_stop - time_start)
+            except dns.exception.DNSException as dnsex:
+                time_stop = time.perf_counter()
+                logging.warning("%s - performance = %3.3f sec", dnsex.msg, time_stop - time_start)
             except Exception as ex:
-                t1_stop = time.perf_counter()
-                t2_stop = time.process_time()
-                #logging.warning(ex.args[0])
-                logging.warning("Exception - performance = {0:.6f} sec".format(t1_stop - t1_start))
+                print(ex)
     
         return True
 
@@ -52,7 +52,7 @@ if __name__ == '__main__':
 
     logging.info("dnsquery started...")
 
-    csvfile = open('pythonproject\querylist.csv')
+    csvfile = open("pythonproject\\querylist.csv")
     reader = csv.reader(csvfile)
 
     thdpool = threadpool.ThreadPool(3, 10)
