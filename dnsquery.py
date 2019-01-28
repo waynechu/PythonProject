@@ -2,7 +2,9 @@ import sys
 import csv
 import time
 import logging
+
 import threadpool
+
 import dns.resolver
 import dns.message
 import dns.rdataclass
@@ -46,9 +48,28 @@ class DNSQueryTask(threadpool.Task):
     
         return True
 
+def printusage():
+    print("python dnsquery.py -f <query_list.csv> -s <backend_dns_ip>")
+
 if __name__ == '__main__':
 
-    print(sys.argv)
+    idx = 1
+    argc = len(sys.argv)
+    qlistfile = ""
+    bdnsip = ""
+
+    while idx < argc:
+        if (sys.argv[idx] == "-f") and (idx < argc - 1):
+            idx = idx + 1
+            qlistfile = sys.argv[idx]
+        elif (sys.argv[idx] == "-s") and (idx < argc - 1):
+            idx = idx + 1
+            bdnsip = sys.argv[idx]
+        idx = idx + 1
+
+    if (qlistfile == "") or (bdnsip == ""):
+        printusage()
+        sys.exit("Terminated")
 
     logging.basicConfig(level=logging.DEBUG, format="%(asctime)s-%(threadName)10s-%(levelname)s: %(message)s", datefmt="%Y%m%d-%H%M%S")
 

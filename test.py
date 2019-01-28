@@ -1,39 +1,24 @@
-import random
-import threading
+import sys
+import getopt
 
-class Counter(object):
-    def __init__(self, start=0):
-        self.lock = threading.Lock()
-        self.value = start
-    def increment(self):
-        print(threading.current_thread(), 'Waiting for lock')
-        self.lock.acquire()
-        try:
-            print(threading.current_thread(), 'Acquired lock')
-            self.value = self.value + 1
-        finally:
-            print(threading.current_thread(), 'Release')
-            self.lock.release()
+def main(argv):
+   inputfile = ''
+   outputfile = ''
+   try:
+      opts, args = getopt.getopt(argv, "hi:o:", ["ifile=", "ofile="])
+   except getopt.GetoptError:
+      print('test.py -i <inputfile> -o <outputfile>')
+      sys.exit(2)
+   for opt, arg in opts:
+      if opt == '-h':
+         print('test.py -i <inputfile> -o <outputfile>')
+         sys.exit()
+      elif opt in ("-i", "--ifile"):
+         inputfile = arg
+      elif opt in ("-o", "--ofile"):
+         outputfile = arg
+   print("Input file is", inputfile)
+   print("Output file is", outputfile)
 
-def worker(c):
-    for i in range(200):
-        c.increment()
-    print('Done')
-
-counter = Counter()
-thd = []
-
-for i in range(4):
-    t = threading.Thread(target=worker, args=(counter,))
-    thd.append(t)
-
-for t in thd:
-    t.start()
-
-print('Waiting for worker threads')
-
-for t in thd:
-    t.join()
-
-print('Counter: ', counter.value)
-
+if __name__ == "__main__":
+   main(sys.argv[1:])
