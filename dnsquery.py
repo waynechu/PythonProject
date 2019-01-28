@@ -21,15 +21,15 @@ class DNSQueryTask(threadpool.Task):
         for arg in self.kargs:
             if arg == "qtype":
                 qtype = self.kargs[arg]
-            if arg == "qname":
+            elif arg == "qname":
                 qname = self.kargs[arg]
-            if arg == "qcount":
+            elif arg == "qcount":
                 qcount = int(self.kargs[arg])
+            elif arg == "bdnsip":
+                bdnsip = self.kargs[arg]
 
         resolver = dns.resolver.Resolver(configure=False)
-        #resolver.nameservers = ['27.126.245.88']
-        #resolver.nameservers = ['1.1.1.1']
-        resolver.nameservers = ['8.8.8.8']
+        resolver.nameservers = [bdnsip]
 
         for i in range(qcount):
             try:
@@ -69,27 +69,26 @@ if __name__ == '__main__':
 
     if (qlistfile == "") or (bdnsip == ""):
         printusage()
-        sys.exit("Terminated")
+    else:
+        logging.basicConfig(level=logging.DEBUG, format="%(asctime)s-%(threadName)10s-%(levelname)s: %(message)s", datefmt="%Y%m%d-%H%M%S")
 
-    logging.basicConfig(level=logging.DEBUG, format="%(asctime)s-%(threadName)10s-%(levelname)s: %(message)s", datefmt="%Y%m%d-%H%M%S")
+        logging.info("dnsquery started...")
 
-    logging.info("dnsquery started...")
-
-    csvfile = open("pythonproject\\querylist.csv")
-    reader = csv.reader(csvfile)
+        csvfile = open(qlistfile)
+        reader = csv.reader(csvfile)
  
-    thdpool = threadpool.ThreadPool(10, 10)
-    thdpool.start_pool()
+        thdpool = threadpool.ThreadPool(10, 10)
+        thdpool.start_pool()
 
-    try:
-        for row in reader:
-            qtask = DNSQueryTask(qtype = row[0], qname = row[1], qcount = 5)
-            thdpool.add_task(qtask)
+        try:
+            for row in reader:
+                qtask = DNSQueryTask(qtype = row[0], qname = row[1], qcount = 5, bdnsip = bdnsip)
+                thdpool.add_task(qtask)
 
-    except csv.Error as ex:
-        print(ex.args)
+        except csv.Error as ex:
+            print(ex.args)
 
-    thdpool.wait_completion()
-    thdpool.stop_pool()
+        thdpool.wait_completion()
+        thdpool.stop_pool()
 
-    logging.info("dnsquery complete...")
+        logging.info("dnsquery complete...")
