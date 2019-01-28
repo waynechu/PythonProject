@@ -77,12 +77,12 @@ if __name__ == '__main__':
         csvfile = open(qlistfile)
         reader = csv.reader(csvfile)
  
-        thdpool = threadpool.ThreadPool(10, 10)
+        thdpool = threadpool.ThreadPool(20, 40)
         thdpool.start_pool()
 
         try:
             for row in reader:
-                qtask = DNSQueryTask(qtype = row[0], qname = row[1], qcount = 5, bdnsip = bdnsip)
+                qtask = DNSQueryTask(qtype = row[0], qname = row[1], qcount = int(row[2]), bdnsip = bdnsip)
                 thdpool.add_task(qtask)
 
         except csv.Error as ex:
