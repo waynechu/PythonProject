@@ -47,8 +47,10 @@ class ThreadPool:
     def __init__(self, num_threads, max_queue_size):
         self.tasks = Queue(max_queue_size)
         self.threads = []
-        for i in range(num_threads):
+        idx = 0
+        while idx < num_threads:
             self.threads.append(Worker(self.tasks))
+            idx = idx + 1
 
     def start_pool(self):
         for idx in range(len(self.threads)):

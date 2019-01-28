@@ -16,10 +16,7 @@ class DNSQueryTask(threadpool.Task):
 
     def do(self):
 
-        qname = ""
-        qtype = ""
-        qcount = 0
-        bdnsip = ""
+        qname, qtype, qcount, bdnsip = "", "", 0, ""
 
         for arg in self.kargs:
             if arg == "qtype":
@@ -60,10 +57,7 @@ def printusage():
 
 if __name__ == '__main__':
 
-    idx = 1
-    argc = len(sys.argv)
-    qlistfile = ""
-    bdnsip = ""
+    argc, qlistfile, bdnsip, idx = len(sys.argv), "", "", 1
 
     while idx < argc:
         if (sys.argv[idx] == "-f") and (idx < argc - 1):
