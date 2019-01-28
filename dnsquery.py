@@ -16,7 +16,10 @@ class DNSQueryTask(threadpool.Task):
 
     def do(self):
 
-        qcount = 100
+        qname = ""
+        qtype = ""
+        qcount = 0
+        bdnsip = ""
 
         for arg in self.kargs:
             if arg == "qtype":
@@ -27,6 +30,10 @@ class DNSQueryTask(threadpool.Task):
                 qcount = int(self.kargs[arg])
             elif arg == "bdnsip":
                 bdnsip = self.kargs[arg]
+
+        if (qname == "") or (qtype == "") or (qcount == 0) or (bdnsip == ""):
+            logging.error("Incorrect task!")
+            return False
 
         resolver = dns.resolver.Resolver(configure=False)
         resolver.nameservers = [bdnsip]
