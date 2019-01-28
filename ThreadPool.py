@@ -27,7 +27,7 @@ class Worker(Thread):
     def run(self):
         while self.doing:
             try:
-                task = self.tasks.get(True, 3)
+                task = self.tasks.get(True, 1)
 
                 try:
                     task.do()

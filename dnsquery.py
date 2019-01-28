@@ -77,7 +77,7 @@ if __name__ == '__main__':
     if (qlistfile == "") or (bdnsip == ""):
         printusage()
     else:
-        logging.basicConfig(level=logging.DEBUG, format="%(asctime)s-%(threadName)10s-%(levelname)s: %(message)s", datefmt="%Y%m%d-%H%M%S")
+        logging.basicConfig(level=logging.DEBUG, format="%(asctime)s-%(thread)06d-%(levelname)s: %(message)s", datefmt="%Y%m%d-%H%M%S")
 
         logging.info("dnsquery started...")
 
