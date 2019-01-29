@@ -3,7 +3,7 @@ import csv
 import time
 import logging
 
-import threadpool
+from common import threadpool
 
 import dns.resolver
 import dns.message
