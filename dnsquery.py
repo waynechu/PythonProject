@@ -39,13 +39,17 @@ class DNSQueryTask(threadpool.Task):
             try:
                 time_start = time.perf_counter()
                 answer = resolver.query(qname, qtype)
-                time_stop = time.perf_counter()
+                time_performance = time.perf_counter() - time_start
                 for rr in answer:
-                    logging.info("%02d %s %s %15s - performace = %3.3f sec", i, qname, qtype, rr, time_stop - time_start)
+                    if time_performance > 0:
+                        logging.info("%02d %s %s %15s - performace = %3.3f sec", i, qname, qtype, rr, time_performance)
+                        time_performance = 0
+                    else:
+                        logging.info("   %s %s %15s", qname, qtype, rr)
 
-            except dns.exception.DNSException as dnsex:
-                time_stop = time.perf_counter()
-                logging.warning("%s - performance = %3.3f sec", dnsex.msg, time_stop - time_start)
+            except dns.exception.DNSException:
+                time_performance = time.perf_counter() - time_start
+                logging.warning("Exception - performance = %3.3f sec", time_performance)
 
             except Exception as ex:
                 print(ex)
