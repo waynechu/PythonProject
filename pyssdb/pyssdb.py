@@ -240,19 +240,3 @@ class Client(object):
 
         return self.__dict__[cmd]
 
-
-if __name__ == '__main__':
-    c = Client()
-    print(c.set('key', 'value'))
-    print(c.get('key'))
-    import string
-    for i in string.ascii_letters:
-        c.incr(i)
-    print(c.keys('a', 'z', 1))
-    print(c.keys('a', 'z', 10))
-    print(c.get('z'))
-    print(c.get('a'))
-    print(c.set('中文', '你好'))
-    print(c.get('中文'))
-    print(c.info())
-    c.disconnect()
