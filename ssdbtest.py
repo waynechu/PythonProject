@@ -16,7 +16,8 @@ def parameter_check(argv):
         idx = idx + 1
 
     if (parameters["ConfigFile"] == ""):
-        print("python ssdbtest.py -f <config_file_name>")
+        print("Usage:")
+        print("    python ssdbtest.py -f <config_file_name>")
         exit(0)
     else:
         return parameters
