@@ -18,7 +18,8 @@ if __name__ == '__main__':
 
     print("------------------------------")
 
-    hksgdnsdf01 = ConfSSDB.hgetall("DNS-Agent-Log-HKSGDNSDF01", "", "", 100)
+    LogSize = ConfSSDB.hsize("DNS-Agent-Log-HKSGDNSDF01")
+    hksgdnsdf01 = ConfSSDB.hgetall("DNS-Agent-Log-HKSGDNSDF01", "", "", LogSize)
     for log in hksgdnsdf01:
         print(log)
 
