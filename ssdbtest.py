@@ -4,7 +4,7 @@ import logging
 import sys
 from pyssdb import pyssdb
 
-def parameter_check(argv):
+def GetParameters(argv):
 
     parameters = {"ConfigFile": ""}
     idx, argc = 0, len(argv)
@@ -22,7 +22,7 @@ def parameter_check(argv):
     else:
         return parameters
 
-def load_config(filename):
+def LoadConfig(filename):
 
     fd = open(filename)
     data = fd.read()
@@ -32,19 +32,16 @@ def load_config(filename):
 
 if __name__ == '__main__':
 
-    parameters = parameter_check(sys.argv)
+    parameters = GetParameters(sys.argv)
 
     logging.basicConfig(level=logging.DEBUG, format="%(asctime)s-%(thread)06d-%(levelname)s: %(message)s", datefmt="%Y%m%d-%H%M%S")
 
-    confData = load_config(parameters["ConfigFile"])
+    confData = LoadConfig(parameters["ConfigFile"])
     agentConf = json.loads(confData)
-    ssdbHost = agentConf["SSDB"]["Host"]
-    ssdbPort = agentConf["SSDB"]["Port"]
-    ssdbPasscode = agentConf["SSDB"]["Passcode"]
 
-    confSSDB = pyssdb.Client(host = ssdbHost, port = ssdbPort)
+    confSSDB = pyssdb.Client(host = agentConf["SSDB"]["Host"], port = agentConf["SSDB"]["Port"])
 
-    confSSDB.auth(ssdbPasscode)
+    confSSDB.auth(agentConf["SSDB"]["Passcode"])
 
     names = confSSDB.hlist("", "", 100)
 
