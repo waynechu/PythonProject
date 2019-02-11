@@ -56,19 +56,24 @@ class DNSQueryTask(threadpool.Task):
     
         return True
 
-QUERY_FILE = "QueryFile"
-DNS_IP = "DNSIP"
+QUERY_FILE = 1
+DNS_IP = 2
+TEST = 3
 
 ARGUMENT_LIST = [
-    [QUERY_FILE, "-f", "<query_list_file>"],
-    [DNS_IP, "-s", "<DNS server IP>"]
+    [QUERY_FILE, "-f", "<query_list_file>", True],
+    [DNS_IP, "-s", "<DNS server IP>", True],
+    [TEST, "-t", "<test>", False]
 ]
 
 def PrintUsage():
 
-    print("\npython dnsquery.py\n")
+    print("\n", __file__, "\n")
     for argItem in ARGUMENT_LIST:
-        print("    ", argItem[1], argItem[2])
+        if argItem[3] == True:
+            print("    ", argItem[1], argItem[2])
+        else:
+            print("    ", argItem[1], argItem[2], "[OPTIONAL]")
 
 def GetArguments(argv):
 
@@ -82,11 +87,12 @@ def GetArguments(argv):
                 arguments[argItem[0]] = argv[idx]
         idx = idx + 1
 
-    if (QUERY_FILE not in arguments) or (DNS_IP not in arguments):
-        PrintUsage()
-        exit(0)
-    else:
-        return arguments
+    for argItem in ARGUMENT_LIST:
+        if (argItem[3] == True) and (argItem[0] not in arguments):
+            PrintUsage()
+            exit(0)
+
+    return arguments
 
 if __name__ == '__main__':
 
