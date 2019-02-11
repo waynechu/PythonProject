@@ -56,44 +56,59 @@ class DNSQueryTask(threadpool.Task):
     
         return True
 
-def printusage():
+QUERY_FILE = "QFile"
+DNS_IP = "DNSIP"
+
+ARGUMENT_LIST = [
+    [QUERY_FILE, "-f", "<query_list_file>"],
+    [DNS_IP, "-s", "<DNS server IP>"]
+]
+
+def PrintUsage():
+
     print("python dnsquery.py -f <query_list.csv> -s <backend_dns_ip>")
+
+def GetArguments(argv):
+
+    arguments = dict()
+    idx, argc = 0, len(argv)
+
+    while idx < argc:
+        for argItem in ARGUMENT_LIST:
+            if (argv[idx] == argItem[1]) and (idx < argc - 1):
+                idx = idx + 1
+                arguments[argItem[0]] = argv[idx]
+        idx = idx + 1
+
+    if (arguments[QUERY_FILE] == ""):
+        PrintUsage()
+        exit(0)
+    else:
+        return arguments
 
 if __name__ == '__main__':
 
-    argc, qlistfile, bdnsip, idx = len(sys.argv), "", "", 1
+    arguments = GetArguments(sys.argv)
 
-    while idx < argc:
-        if (sys.argv[idx] == "-f") and (idx < argc - 1):
-            idx = idx + 1
-            qlistfile = sys.argv[idx]
-        elif (sys.argv[idx] == "-s") and (idx < argc - 1):
-            idx = idx + 1
-            bdnsip = sys.argv[idx]
-        idx = idx + 1
+    logging.basicConfig(level=logging.DEBUG, format="%(asctime)s-%(thread)06d-%(levelname)s: %(message)s", datefmt="%Y%m%d-%H%M%S")
 
-    if (qlistfile == "") or (bdnsip == ""):
-        printusage()
-    else:
-        logging.basicConfig(level=logging.DEBUG, format="%(asctime)s-%(thread)06d-%(levelname)s: %(message)s", datefmt="%Y%m%d-%H%M%S")
+    logging.info("dnsquery started...")
 
-        logging.info("dnsquery started...")
-
-        csvfile = open(qlistfile)
-        reader = csv.reader(csvfile)
+    csvfile = open(arguments[QUERY_FILE])
+    reader = csv.reader(csvfile)
  
-        thdpool = threadpool.ThreadPool(20, 40)
-        thdpool.start_pool()
+    thdpool = threadpool.ThreadPool(20, 40)
+    thdpool.start_pool()
 
-        try:
-            for row in reader:
-                qtask = DNSQueryTask(qtype = row[0], qname = row[1], qcount = int(row[2]), bdnsip = bdnsip)
-                thdpool.add_task(qtask)
+    try:
+        for row in reader:
+            qtask = DNSQueryTask(qtype = row[0], qname = row[1], qcount = int(row[2]), bdnsip = arguments[DNS_IP])
+            thdpool.add_task(qtask)
 
-        except csv.Error as ex:
-            print(ex.args)
+    except csv.Error as ex:
+        print(ex.args)
 
-        thdpool.wait_completion()
-        thdpool.stop_pool()
+    thdpool.wait_completion()
+    thdpool.stop_pool()
 
-        logging.info("dnsquery complete...")
+    logging.info("dnsquery complete...")

@@ -4,18 +4,20 @@ import logging
 import sys
 from pyssdb import pyssdb
 
-def GetParameters(argv):
+CONFIG_FILE = "ConfigFile"
 
-    parameters = {"ConfigFile": ""}
+def GetArguments(argv):
+
+    parameters = {CONFIG_FILE: ""}
     idx, argc = 0, len(argv)
 
     while idx < argc:
-        if (sys.argv[idx] == "-f") and (idx < argc - 1):
+        if (argv[idx] == "-f") and (idx < argc - 1):
             idx = idx + 1
-            parameters["ConfigFile"] = sys.argv[idx]
+            parameters[CONFIG_FILE] = argv[idx]
         idx = idx + 1
 
-    if (parameters["ConfigFile"] == ""):
+    if (parameters[CONFIG_FILE] == ""):
         print("Usage:")
         print("    python ssdbtest.py -f <config_file_name>")
         exit(0)
@@ -32,11 +34,11 @@ def LoadConfig(filename):
 
 if __name__ == '__main__':
 
-    parameters = GetParameters(sys.argv)
+    parameters = GetArguments(sys.argv)
 
     logging.basicConfig(level=logging.DEBUG, format="%(asctime)s-%(thread)06d-%(levelname)s: %(message)s", datefmt="%Y%m%d-%H%M%S")
 
-    confData = LoadConfig(parameters["ConfigFile"])
+    confData = LoadConfig(parameters[CONFIG_FILE])
     agentConf = json.loads(confData)
 
     confSSDB = pyssdb.Client(host = agentConf["SSDB"]["Host"], port = agentConf["SSDB"]["Port"])
