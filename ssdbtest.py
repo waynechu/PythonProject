@@ -41,9 +41,14 @@ if __name__ == '__main__':
     confData = LoadConfig(parameters[CONFIG_FILE])
     agentConf = json.loads(confData)
 
-    confSSDB = pyssdb.Client(host = agentConf["SSDB"]["Host"], port = agentConf["SSDB"]["Port"])
-
-    confSSDB.auth(agentConf["SSDB"]["Passcode"])
+    try:
+        logging.info("Connecting to %s:%i ...", agentConf["SSDB"]["Host"], agentConf["SSDB"]["Port"])
+        confSSDB = pyssdb.Client(host = agentConf["SSDB"]["Host"], port = agentConf["SSDB"]["Port"], socket_timeout = 10)
+        logging.info("Sending credential ...")
+        confSSDB.auth(agentConf["SSDB"]["Passcode"])
+    except Exception as ex:
+        print(ex)
+        exit(0)
 
     names = confSSDB.hlist("", "", 100)
 
