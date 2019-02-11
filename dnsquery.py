@@ -56,7 +56,7 @@ class DNSQueryTask(threadpool.Task):
     
         return True
 
-QUERY_FILE = "QFile"
+QUERY_FILE = "QueryFile"
 DNS_IP = "DNSIP"
 
 ARGUMENT_LIST = [
@@ -66,7 +66,9 @@ ARGUMENT_LIST = [
 
 def PrintUsage():
 
-    print("python dnsquery.py -f <query_list.csv> -s <backend_dns_ip>")
+    print("\npython dnsquery.py\n")
+    for argItem in ARGUMENT_LIST:
+        print("    ", argItem[1], argItem[2])
 
 def GetArguments(argv):
 
@@ -80,7 +82,7 @@ def GetArguments(argv):
                 arguments[argItem[0]] = argv[idx]
         idx = idx + 1
 
-    if (arguments[QUERY_FILE] == ""):
+    if (QUERY_FILE not in arguments) or (DNS_IP not in arguments):
         PrintUsage()
         exit(0)
     else:
