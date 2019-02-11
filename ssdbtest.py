@@ -39,8 +39,9 @@ if __name__ == '__main__':
     confData = LoadConfig(parameters["ConfigFile"])
     agentConf = json.loads(confData)
 
+    logging.info("Connecting to %s:%i ...", agentConf["SSDB"]["Host"], agentConf["SSDB"]["Port"])
     confSSDB = pyssdb.Client(host = agentConf["SSDB"]["Host"], port = agentConf["SSDB"]["Port"])
-
+    logging.info("Sending credential ...")
     confSSDB.auth(agentConf["SSDB"]["Passcode"])
 
     names = confSSDB.hlist("", "", 100)
