@@ -5,9 +5,11 @@ import sys
 from pyssdb import pyssdb
 
 CONFIG_FILE = 1
+OUTPUT_DIR  = 2
 
 ARGUMENT_LIST = [
-    [CONFIG_FILE, "-f", "<config_file_name>", True]
+    [CONFIG_FILE, "-f", "<config_file_name>", True],
+    [OUTPUT_DIR, "-o", "<output_directory>", True]
 ]
 
 def PrintUsage():
@@ -48,37 +50,36 @@ def LoadConfig(filename):
 
 if __name__ == '__main__':
 
-    parameters = GetArguments(sys.argv)
+    args = GetArguments(sys.argv)
 
     logging.basicConfig(level=logging.DEBUG, format="%(asctime)s-%(thread)06d-%(levelname)s: %(message)s", datefmt="%Y%m%d-%H%M%S")
 
-    confData = LoadConfig(parameters[CONFIG_FILE])
+    confData = LoadConfig(args[CONFIG_FILE])
     agentConf = json.loads(confData)
 
     try:
+
         logging.info("Connecting to %s:%i ...", agentConf["SSDB"]["Host"], agentConf["SSDB"]["Port"])
         confSSDB = pyssdb.Client(host = agentConf["SSDB"]["Host"], port = agentConf["SSDB"]["Port"], socket_timeout = 10)
+
         logging.info("Sending credential ...")
         confSSDB.auth(agentConf["SSDB"]["Passcode"])
+
+        zoneCount = confSSDB.hsize("DNS-Zones")
+        logging.info("Total zone file: %d", zoneCount)
+
+        zoneNameList = confSSDB.hkeys("DNS-Zones", "", "", zoneCount)
+
+        for zoneName in zoneNameList:
+            zoneContent = confSSDB.hget("DNS-Zones", zoneName.decode("utf-8"))
+            outputFile = args[OUTPUT_DIR].rstrip("/") + "/" + zoneName.decode("utf-8").rstrip(".")
+            logging.info("  Output %s to %s", zoneName.decode("utf-8"), outputFile)
+            zonefd = open(outputFile, mode = "wt")
+            zonefd.write(zoneContent.decode("utf-8"))
+            zonefd.close()
+
+        logging.info("Disconnecting from SSDB ...")
+        confSSDB.disconnect()
+
     except Exception as ex:
         print(ex)
-        exit(0)
-
-    names = confSSDB.hlist("", "", 100)
-
-    for name in names:
-        logging.info(name.decode("utf-8"))
-
-    logging.info("------------------------------")
-
-    statusSize = confSSDB.hsize("DNS-Agent-Sync")
-    statusHashes = confSSDB.hkeys("DNS-Agent-Sync", "", "", statusSize)
-
-    for agent in statusHashes:
-        status = confSSDB.hget("DNS-Agent-Sync", agent)
-        if status == b"Sync":
-            logging.info("%s is good", agent.decode("utf-8"))
-        else:
-            logging.info("%s is in trouble!!", agent.decode("utf-8"))
-
-    confSSDB.disconnect()
