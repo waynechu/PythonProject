@@ -77,8 +77,8 @@ if __name__ == '__main__':
             if agentSync == b"Sync":
                 status = "Sync"
             else:
-                status = "Not sync"
-            logging.info("%25s : %10s, %s", agentName.decode("utf-8"), status, updateTimeStr)
+                status = "Error"
+            logging.info("%25s : %5s, %s", agentName.decode("utf-8"), status, updateTimeStr)
 
         logging.info("Disconnecting from SSDB ...")
         confSSDB.disconnect()
