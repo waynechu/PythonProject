@@ -57,31 +57,31 @@ if __name__ == '__main__':
     confData = LoadConfig(args[CONFIG_FILE])
     agentConf = json.loads(confData)
 
-    try:
+    logging.info("Connecting to %s:%i (%i)...", agentConf["SSDB"]["Host"], agentConf["SSDB"]["Port"], agentConf["SSDB"]["Timeout"])
+    confSSDB = pyssdb.Client(host = agentConf["SSDB"]["Host"], port = agentConf["SSDB"]["Port"], socket_timeout = agentConf["SSDB"]["Timeout"])
 
-        logging.info("Connecting to %s:%i (%i)...", agentConf["SSDB"]["Host"], agentConf["SSDB"]["Port"], agentConf["SSDB"]["Timeout"])
-        confSSDB = pyssdb.Client(host = agentConf["SSDB"]["Host"], port = agentConf["SSDB"]["Port"], socket_timeout = agentConf["SSDB"]["Timeout"])
+    logging.info("Sending credential ...")
+    confSSDB.auth(agentConf["SSDB"]["Passcode"])
 
-        logging.info("Sending credential ...")
-        confSSDB.auth(agentConf["SSDB"]["Passcode"])
+    agentCount = confSSDB.hsize("DNS-Agent-Status")
+    logging.info("Total agent count: %d", agentCount)
 
-        agentCount = confSSDB.hsize("DNS-Agent-Status")
-        logging.info("Total agent count: %d", agentCount)
+    agentNameList = confSSDB.hkeys("DNS-Agent-Status", "", "", agentCount)
+    for agentName in agentNameList:
+        agentStatus = confSSDB.hget("DNS-Agent-Status", agentName)
+        updateTimestamp = int(agentStatus.decode("utf-8"))
+        if abs(datetime.now().timestamp() - updateTimestamp) > 600:
+            statusStr = "Inactive"
+        else:
+            statusStr = "Active"
+        updateTimeStr = datetime.fromtimestamp(updateTimestamp).strftime("%Y/%m/%d %H:%M:%S")
 
-        agentNameList = confSSDB.hkeys("DNS-Agent-Status", "", "", agentCount)
-        for agentName in agentNameList:
-            agentStatus = confSSDB.hget("DNS-Agent-Status", agentName)
-            updateTime = datetime.fromtimestamp(int(agentStatus.decode("utf-8")))
-            updateTimeStr = updateTime.strftime("%Y/%m/%d-%H:%M:%S")
-            agentSync = confSSDB.hget("DNS-Agent-Sync", agentName)
-            if agentSync == b"Sync":
-                status = "Sync"
-            else:
-                status = "Error"
-            logging.info("%25s : %5s, %s", agentName.decode("utf-8"), status, updateTimeStr)
+        agentSync = confSSDB.hget("DNS-Agent-Sync", agentName)
+        if agentSync == b"Sync":
+            status = "Sync"
+        else:
+            status = "Error"
+        logging.info("%25s : %5s, %s (%s)", agentName.decode("utf-8"), status, updateTimeStr, statusStr)
 
-        logging.info("Disconnecting from SSDB ...")
-        confSSDB.disconnect()
-
-    except Exception as ex:
-        print(ex)
+    logging.info("Disconnecting from SSDB ...")
+    confSSDB.disconnect()
