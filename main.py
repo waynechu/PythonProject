@@ -1,4 +1,4 @@
-import threadpool
+from common import threadpool
 
 class SleepTask(threadpool.Task):
 

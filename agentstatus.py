@@ -2,6 +2,7 @@ import json
 import os
 import logging
 import sys
+from datetime import datetime
 from pyssdb import pyssdb
 
 CONFIG_FILE = 1
@@ -70,12 +71,14 @@ if __name__ == '__main__':
         agentNameList = confSSDB.hkeys("DNS-Agent-Status", "", "", agentCount)
         for agentName in agentNameList:
             agentStatus = confSSDB.hget("DNS-Agent-Status", agentName)
+            updateTime = datetime.fromtimestamp(int(agentStatus.decode("utf-8")))
+            updateTimeStr = updateTime.strftime("%Y/%m/%d-%H:%M:%S")
             agentSync = confSSDB.hget("DNS-Agent-Sync", agentName)
             if agentSync == b"Sync":
                 status = "Sync"
             else:
                 status = "Not sync"
-            logging.info("%25s : %s, %s", agentName.decode("utf-8"), agentStatus.decode("utf-8"), status)
+            logging.info("%25s : %10s, %s", agentName.decode("utf-8"), status, updateTimeStr)
 
         logging.info("Disconnecting from SSDB ...")
         confSSDB.disconnect()
