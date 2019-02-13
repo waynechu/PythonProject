@@ -8,8 +8,7 @@ CONFIG_FILE = 1
 OUTPUT_DIR  = 2
 
 ARGUMENT_LIST = [
-    [CONFIG_FILE, "-f", "<config_file_name>", True],
-    [OUTPUT_DIR, "-o", "<output_directory>", True]
+    [CONFIG_FILE, "-f", "<config_file_name>", True]
 ]
 
 def PrintUsage():
@@ -59,24 +58,24 @@ if __name__ == '__main__':
 
     try:
 
-        logging.info("Connecting to %s:%i(%i) ...", agentConf["SSDB"]["Host"], agentConf["SSDB"]["Port"], agentConf["SSDB"]["Timeout"])
+        logging.info("Connecting to %s:%i (%i)...", agentConf["SSDB"]["Host"], agentConf["SSDB"]["Port"], agentConf["SSDB"]["Timeout"])
         confSSDB = pyssdb.Client(host = agentConf["SSDB"]["Host"], port = agentConf["SSDB"]["Port"], socket_timeout = agentConf["SSDB"]["Timeout"])
 
         logging.info("Sending credential ...")
         confSSDB.auth(agentConf["SSDB"]["Passcode"])
 
-        zoneCount = confSSDB.hsize("DNS-Zones")
-        logging.info("Total zone file: %d", zoneCount)
+        agentCount = confSSDB.hsize("DNS-Agent-Status")
+        logging.info("Total agent count: %d", agentCount)
 
-        zoneNameList = confSSDB.hkeys("DNS-Zones", "", "", zoneCount)
-
-        for zoneName in zoneNameList:
-            zoneContent = confSSDB.hget("DNS-Zones", zoneName.decode("utf-8"))
-            outputFile = args[OUTPUT_DIR].rstrip("/") + "/" + zoneName.decode("utf-8").rstrip(".")
-            logging.info("  Output %s to %s", zoneName.decode("utf-8"), outputFile)
-            zonefd = open(outputFile, mode = "wt")
-            zonefd.write(zoneContent.decode("utf-8"))
-            zonefd.close()
+        agentNameList = confSSDB.hkeys("DNS-Agent-Status", "", "", agentCount)
+        for agentName in agentNameList:
+            agentStatus = confSSDB.hget("DNS-Agent-Status", agentName)
+            agentSync = confSSDB.hget("DNS-Agent-Sync", agentName)
+            if agentSync == b"Sync":
+                status = "Sync"
+            else:
+                status = "Not sync"
+            logging.info("%25s : %s, %s", agentName.decode("utf-8"), agentStatus.decode("utf-8"), status)
 
         logging.info("Disconnecting from SSDB ...")
         confSSDB.disconnect()
