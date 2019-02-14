@@ -20,6 +20,7 @@ def PrintUsage():
             print("    ", argItem[1], argItem[2])
         else:
             print("    ", argItem[1], argItem[2], "[OPTIONAL]")
+    print("")
 
 def GetArguments(argv):
 
@@ -72,14 +73,17 @@ if __name__ == '__main__':
 
         for zoneName in zoneNameList:
             zoneContent = confSSDB.hget("DNS-Zones", zoneName.decode("utf-8"))
-            outputFile = args[OUTPUT_DIR].rstrip("/") + "/" + zoneName.decode("utf-8").rstrip(".")
+            outputFile = os.path.join(args[OUTPUT_DIR], zoneName.decode("utf-8") + "zone")
             logging.info("  Output %s to %s", zoneName.decode("utf-8"), outputFile)
+    
             zonefd = open(outputFile, mode = "wt")
             zonefd.write(zoneContent.decode("utf-8"))
             zonefd.close()
 
-        logging.info("Disconnecting from SSDB ...")
-        confSSDB.disconnect()
-
     except Exception as ex:
         print(ex)
+
+    finally:
+        if confSSDB != None:
+            logging.info("Disconnecting from SSDB ...")
+            confSSDB.disconnect()
