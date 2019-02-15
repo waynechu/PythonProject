@@ -67,21 +67,23 @@ if __name__ == '__main__':
     logging.info("Total agent count: %d", agentCount)
 
     agentNameList = confSSDB.hkeys("DNS-Agent-Status", "", "", agentCount)
-    for agentName in agentNameList:
-        agentStatus = confSSDB.hget("DNS-Agent-Status", agentName)
-        updateTimestamp = int(agentStatus.decode("utf-8"))
-        if abs(datetime.now().timestamp() - updateTimestamp) > 600:
-            statusStr = "Inactive"
-        else:
-            statusStr = "Active"
-        updateTimeStr = datetime.fromtimestamp(updateTimestamp).strftime("%Y/%m/%d %H:%M:%S")
 
-        agentSync = confSSDB.hget("DNS-Agent-Sync", agentName)
-        if agentSync == b"Sync":
-            status = "Sync"
-        else:
-            status = "Error"
-        logging.info("%25s : %5s, %s (%s)", agentName.decode("utf-8"), status, updateTimeStr, statusStr)
+    for agentName in agentNameList:
+        if ("ServerList" not in agentConf["SSDB"]) or (agentName.decode("utf-8") in agentConf["SSDB"]["ServerList"]):
+            agentStatus = confSSDB.hget("DNS-Agent-Status", agentName)
+            updateTimestamp = int(agentStatus.decode("utf-8"))
+            if abs(datetime.now().timestamp() - updateTimestamp) > 600:
+                statusStr = "Inactive"
+            else:
+                statusStr = "Active"
+            updateTimeStr = datetime.fromtimestamp(updateTimestamp).strftime("%Y/%m/%d %H:%M:%S")
+
+            agentSync = confSSDB.hget("DNS-Agent-Sync", agentName)
+            if agentSync == b"Sync":
+                status = "Sync"
+            else:
+                status = "Error"
+            logging.info("%25s : %5s, %s (%s)", agentName.decode("utf-8"), status, updateTimeStr, statusStr)
 
     logging.info("Disconnecting from SSDB ...")
     confSSDB.disconnect()
