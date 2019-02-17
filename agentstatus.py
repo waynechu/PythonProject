@@ -83,7 +83,7 @@ if __name__ == '__main__':
                 status = "Sync"
             else:
                 status = "Error"
-            logging.info("%25s : %5s, %s (%s)", agentName.decode("utf-8"), status, updateTimeStr, statusStr)
+            logging.info("%25s : %s (%s, %s)", agentName.decode("utf-8"), updateTimeStr, statusStr, status)
 
     logging.info("Disconnecting from SSDB ...")
     confSSDB.disconnect()
