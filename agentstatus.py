@@ -2,6 +2,8 @@ import json
 import os
 import logging
 import sys
+import time
+import sched
 from datetime import datetime
 from pyssdb import pyssdb
 
@@ -9,7 +11,6 @@ CONF_AGENT_STATUS = "DNS-Agent-Status"
 CONF_AGENT_SYNC = "DNS-Agent-Sync"
 
 CONFIG_FILE = 1
-OUTPUT_DIR  = 2
 
 ARGUMENT_LIST = [
     [CONFIG_FILE, "-f", "<config_file_name>", True]
@@ -43,7 +44,7 @@ def GetArguments(argv):
 
     return arguments
 
-def LoadConfig(filename):
+def ReadConfigFile(filename):
 
     fd = open(filename)
     data = fd.read()
@@ -120,23 +121,33 @@ class ConfSSDB:
         else:
             logging.warning("SSDB instence is None")
 
+def AgentCheckRoutine(config):
+
+    confDB = ConfSSDB(config["SSDB"]["Host"], config["SSDB"]["Port"], config["SSDB"]["Timeout"], config["SSDB"]["Passcode"])
+
+    if "ServerList" in config["SSDB"]:
+        confDB.CheckAgentStatus(config["SSDB"]["ServerList"])
+    else:
+        confDB.CheckAgentStatus()
+
+    logging.info("Disconnecting from SSDB ...")
+    confDB.Disconnect()
+
+    # Reschedule the routine at 30 minutes later
+    scheduler.enterabs(datetime.now().timestamp() + 30*60, 0, AgentCheckRoutine, argument=(config,))
+
+
 if __name__ == '__main__':
 
     logging.basicConfig(level=logging.DEBUG, format="%(asctime)s-%(thread)06d-%(levelname)s: %(message)s", datefmt="%Y%m%d-%H%M%S")
 
     # Get arguments and load configure file
     args = GetArguments(sys.argv)
-    content = LoadConfig(args[CONFIG_FILE])
-    agentConf = json.loads(content)
+    content = ReadConfigFile(args[CONFIG_FILE])
+    config = json.loads(content)
 
-    confDB = ConfSSDB(agentConf["SSDB"]["Host"], agentConf["SSDB"]["Port"], agentConf["SSDB"]["Timeout"], agentConf["SSDB"]["Passcode"])
+    # Initial scheduler
+    scheduler = sched.scheduler(time.time, time.sleep)
+    scheduler.enterabs(datetime.now().timestamp(), 0, AgentCheckRoutine, argument=(config,))
+    scheduler.run()
 
-    if "ServerList" in agentConf["SSDB"]:
-        serverList = agentConf["SSDB"]["ServerList"]
-    else:
-        serverList = None
-
-    confDB.CheckAgentStatus(serverList)
-
-    logging.info("Disconnecting from SSDB ...")
-    confDB.Disconnect()
