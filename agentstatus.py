@@ -125,16 +125,23 @@ def AgentCheckRoutine(config):
 
     confDB = ConfSSDB(config["SSDB"]["Host"], config["SSDB"]["Port"], config["SSDB"]["Timeout"], config["SSDB"]["Passcode"])
 
-    if "ServerList" in config["SSDB"]:
-        confDB.CheckAgentStatus(config["SSDB"]["ServerList"])
-    else:
-        confDB.CheckAgentStatus()
+    serverList = None
+    interval = 0
+
+    if "TASK" in config:
+        if "ServerList" in config["TASK"]:
+            serverList = config["TASK"]["ServerList"]
+        if "Interval" in config["TASK"]:
+            interval = config["TASK"]["Interval"]
+
+    confDB.CheckAgentStatus(serverList = serverList)
 
     logging.info("Disconnecting from SSDB ...")
     confDB.Disconnect()
 
     # Reschedule the routine at 30 minutes later
-    scheduler.enterabs(datetime.now().timestamp() + 30*60, 0, AgentCheckRoutine, argument=(config,))
+    if interval != 0:
+        scheduler.enterabs(datetime.now().timestamp() + interval, 0, AgentCheckRoutine, argument=(config,))
 
 
 if __name__ == '__main__':
