@@ -74,6 +74,7 @@ def PrintUsage():
             print("    ", argItem[1], argItem[2])
         else:
             print("    ", argItem[1], argItem[2], "[OPTIONAL]")
+    print("")
 
 def GetArguments(argv):
 
