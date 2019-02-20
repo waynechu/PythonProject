@@ -4,6 +4,7 @@ import logging
 import sys
 import time
 import sched
+from logging.handlers import TimedRotatingFileHandler
 from datetime import datetime
 from pyssdb import pyssdb
 
@@ -65,12 +66,12 @@ class ConfSSDB:
     def Connect(self):
         if self.ssdb == None:
             try:
-                logging.info("Connecting to %s:%i (%i)...", self.host, self.port, self.timeout)
+                logger.info("Connecting to %s:%i (%i)...", self.host, self.port, self.timeout)
                 self.ssdb = pyssdb.Client(host = self.host, port = self.port, socket_timeout = self.timeout)
-                logging.info("Sending credential ...")
+                logger.info("Sending credential ...")
                 self.ssdb.auth(self.passCode)
             except Exception as ex:
-                logging.warning("Connect exception: %s", ex.args[0])
+                logger.warning("Connect exception: %s", ex.args[0])
                 self.Disconnect()
 
     def Disconnect(self):
@@ -78,19 +79,19 @@ class ConfSSDB:
             try:
                 self.ssdb.disconnect()
             except Exception as ex:
-                logging.warning("Disconnect exception: %s", ex.args[0])
+                logger.warning("Disconnect exception: %s", ex.args[0])
             self.ssdb = None
         else:
-            logging.warning("SSDB instence is None")
+            logger.warning("SSDB instence is None")
 
     def GetAgentCount(self):
         if self.ssdb != None:
             try:
                 return self.ssdb.hsize(CONF_AGENT_STATUS)
             except Exception as ex:
-                logging.warning("Get agent count exception: %s", ex.args[0])
+                logger.warning("Get agent count exception: %s", ex.args[0])
         else:
-            logging.warning("SSDB instence is None")
+            logger.warning("SSDB instence is None")
 
     def CheckAgentStatus(self, serverList = None):
         if self.ssdb != None:
@@ -115,12 +116,12 @@ class ConfSSDB:
                         else:
                             syncMsg = "Error"
 
-                        logging.info("%20s : %s (%s, %s)", agentName.decode("utf-8"), updateTimeStr, statusStr, syncMsg)
+                        logger.info("%20s : %s (%s, %s)", agentName.decode("utf-8"), updateTimeStr, statusStr, syncMsg)
 
             except Exception as ex:
-                logging.warning("Check agent status exception: %s", ex.args[0])
+                logger.warning("Check agent status exception: %s", ex.args[0])
         else:
-            logging.warning("SSDB instence is None")
+            logger.warning("SSDB instence is None")
 
 def AgentCheckRoutine(config):
 
@@ -137,7 +138,7 @@ def AgentCheckRoutine(config):
 
     confDB.CheckAgentStatus(serverList = serverList)
 
-    logging.info("Disconnecting from SSDB ...")
+    logger.info("Disconnecting from SSDB ...")
     confDB.Disconnect()
 
     # Reschedule the routine at 30 minutes later
@@ -147,7 +148,13 @@ def AgentCheckRoutine(config):
 
 if __name__ == '__main__':
 
-    logging.basicConfig(level=logging.DEBUG, format="%(asctime)s-%(thread)06d-%(levelname)s: %(message)s", datefmt="%Y%m%d-%H%M%S")
+    logging.basicConfig(level=logging.DEBUG, format="%(asctime)s-%(levelname)s: %(message)s", datefmt="%y/%m/%d-%H:%M:%S")
+
+    fileHandler = TimedRotatingFileHandler("status.log", when='D', interval=1, backupCount=5)
+    fileHandler.setLevel(logging.DEBUG)
+    fileHandler.setFormatter(logging.Formatter("%(asctime)s-%(thread)s-%(levelname)s: %(message)s", datefmt="%y/%m/%d-%H:%M:%S"), )
+    logger = logging.getLogger("agent")
+    logger.addHandler(fileHandler)
 
     # Get arguments and load configure file
     args = GetArguments(sys.argv)

@@ -1,0 +1,14 @@
+{
+    "SSDB":
+    {
+        "Host": "104.199.145.233",
+        "Port": 4001,
+        "Passcode": "sa23891odi1@8hfn!0932aqiomc9AQjiHH",
+        "Timeout": 3
+    },
+    "TASK":
+    {
+        "ServerList": ["HKSGDNSDF01","HKSGDNSDF02","HKSGDNSDF03","HKSGDNSDF04","gdns-uat-agent"],
+        "Interval": 0
+    }
+}
