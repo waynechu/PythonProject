@@ -71,7 +71,7 @@ class ConfSSDB:
                 logger.info("Sending credential ...")
                 self.ssdb.auth(self.passCode)
             except Exception as ex:
-                logger.warning("Connect exception: %s", ex.args[0])
+                logger.exception("Connect exception: %s", ex.args[0])
                 self.Disconnect()
 
     def Disconnect(self):
@@ -79,7 +79,7 @@ class ConfSSDB:
             try:
                 self.ssdb.disconnect()
             except Exception as ex:
-                logger.warning("Disconnect exception: %s", ex.args[0])
+                logger.exception("Disconnect exception: %s", ex.args[0])
             self.ssdb = None
         else:
             logger.warning("SSDB instence is None")
@@ -89,9 +89,9 @@ class ConfSSDB:
             try:
                 return self.ssdb.hsize(CONF_AGENT_STATUS)
             except Exception as ex:
-                logger.warning("Get agent count exception: %s", ex.args[0])
+                logger.exception("Get agent count exception: %s", ex.args[0])
         else:
-            logger.warning("SSDB instence is None")
+            logger.error("SSDB instence is None")
 
     def CheckAgentStatus(self, serverList = None):
         if self.ssdb != None:
@@ -119,9 +119,9 @@ class ConfSSDB:
                         logger.info("%20s : %s (%s, %s)", agentName.decode("utf-8"), updateTimeStr, statusStr, syncMsg)
 
             except Exception as ex:
-                logger.warning("Check agent status exception: %s", ex.args[0])
+                logger.exception("Check agent status exception: %s", ex.args[0])
         else:
-            logger.warning("SSDB instence is None")
+            logger.error("SSDB instence is None")
 
 def AgentCheckRoutine(config):
 
