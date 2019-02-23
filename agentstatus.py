@@ -54,6 +54,17 @@ def ReadConfigFile(filename):
 
     return data
 
+def ConfigDebugLog(config):
+
+    logging.basicConfig(level=logging.DEBUG, format="%(asctime)s-%(levelname)s: %(message)s", datefmt="%y/%m/%d-%H:%M:%S")
+    logger = logging.getLogger("agent")
+    if ("DEBUG" in config) and ("LogFile" in config["DEBUG"]):
+        fileHandler = TimedRotatingFileHandler(config["DEBUG"]["LogFile"], when="midnight", interval=1, backupCount=5)
+        fileHandler.setLevel(logging.DEBUG)
+        fileHandler.setFormatter(logging.Formatter("%(asctime)s-%(thread)s-%(levelname)s: %(message)s", datefmt="%y/%m/%d-%H:%M:%S"), )
+        logger.addHandler(fileHandler)
+    return logger
+
 class ConfSSDB:
     def __init__(self, host, port, timeout = 10, passCode = None):
         self.host = host
@@ -148,18 +159,13 @@ def AgentCheckRoutine(config):
 
 if __name__ == '__main__':
 
-    logging.basicConfig(level=logging.DEBUG, format="%(asctime)s-%(levelname)s: %(message)s", datefmt="%y/%m/%d-%H:%M:%S")
-
-    fileHandler = TimedRotatingFileHandler("status.log", when='D', interval=1, backupCount=5)
-    fileHandler.setLevel(logging.DEBUG)
-    fileHandler.setFormatter(logging.Formatter("%(asctime)s-%(thread)s-%(levelname)s: %(message)s", datefmt="%y/%m/%d-%H:%M:%S"), )
-    logger = logging.getLogger("agent")
-    logger.addHandler(fileHandler)
-
     # Get arguments and load configure file
     args = GetArguments(sys.argv)
     content = ReadConfigFile(args[CONFIG_FILE])
     config = json.loads(content)
+
+    # Config debug log
+    logger = ConfigDebugLog(config)    
 
     # Initial scheduler
     scheduler = sched.scheduler(time.time, time.sleep)
