@@ -1,0 +1,6 @@
+testdev.com. 86400 IN SOA ns6.gdnsec.com. gdnssupport.nexusguard.com. 2016101201 10800 15 604800 10800
+testdev.com. 3600 IN NS ns6.gdnsec.com.
+testdev.com. 3600 IN NS ns4.gdnsec.net.
+testdev.com. 3600 IN NS ns3.gdnsdef.com.
+testdev.com. 3600 IN NS ns9.gdnsdef.net.
+www 3600 IN A 1.1.1.1
