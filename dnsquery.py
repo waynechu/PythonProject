@@ -2,9 +2,8 @@ import sys
 import csv
 import time
 import logging
-
+from logging.handlers import TimedRotatingFileHandler
 from common import threadpool
-
 import dns.resolver
 import dns.message
 import dns.rdataclass
@@ -29,7 +28,7 @@ class DNSQueryTask(threadpool.Task):
                 bdnsip = self.kargs[arg]
 
         if (qname == "") or (qtype == "") or (qcount == 0) or (bdnsip == ""):
-            logging.error("Incorrect task!")
+            logger.error("Incorrect task!")
             return False
 
         resolver = dns.resolver.Resolver(configure=False)
@@ -42,17 +41,17 @@ class DNSQueryTask(threadpool.Task):
                 time_performance = time.perf_counter() - time_start
                 for rr in answer:
                     if time_performance > 0:
-                        logging.info("%02d %s %s %15s - performace = %3.3f sec", i, qname, qtype, rr, time_performance)
+                        logger.info("%03d %s %s %15s - performace = %3.3f sec", i, qname, qtype, rr, time_performance)
                         time_performance = 0
                     else:
-                        logging.info("   %s %s %15s", qname, qtype, rr)
+                        logger.info("    %s %s %15s", qname, qtype, rr)
 
             except dns.exception.DNSException:
                 time_performance = time.perf_counter() - time_start
-                logging.warning("Exception - performance = %3.3f sec", time_performance)
+                logger.exception("Exception - performance = %3.3f sec", time_performance)
 
             except Exception as ex:
-                print(ex)
+                logger.exception("Exception...")
     
         return True
 
@@ -101,7 +100,11 @@ if __name__ == '__main__':
 
     logging.basicConfig(level=logging.DEBUG, format="%(asctime)s-%(thread)06d-%(levelname)s: %(message)s", datefmt="%Y%m%d-%H%M%S")
 
-    logging.info("dnsquery started...")
+    logger = logging.getLogger("agent")
+    fileHandler = TimedRotatingFileHandler("query.log", when='D', interval=1, backupCount=5)
+    fileHandler.setLevel(logging.DEBUG)
+    fileHandler.setFormatter(logging.Formatter("%(asctime)s-%(thread)s-%(levelname)s: %(message)s", datefmt="%y/%m/%d-%H:%M:%S"), )
+    logger.addHandler(fileHandler)
 
     csvfile = open(arguments[QUERY_FILE])
     reader = csv.reader(csvfile)
@@ -120,4 +123,4 @@ if __name__ == '__main__':
     thdpool.wait_completion()
     thdpool.stop_pool()
 
-    logging.info("dnsquery complete...")
+    logger.info("dnsquery complete...")
