@@ -3,13 +3,16 @@ import os
 import logging
 import sys
 from pyssdb import pyssdb
+import dns.zone
 
-CONFIG_FILE = 1
-OUTPUT_DIR  = 2
+CONFIG_FILE  = 1
+OUTPUT_DIR   = 2
+OUTPUT_COUNT = 3
 
 ARGUMENT_LIST = [
     [CONFIG_FILE, "-f", "<config_file_name>", True],
-    [OUTPUT_DIR, "-o", "<output_directory>", True]
+    [OUTPUT_DIR, "-o", "<output_directory>", True],
+    [OUTPUT_COUNT, "-c", "<output_count>", False]
 ]
 
 def PrintUsage():
@@ -49,6 +52,15 @@ def LoadConfig(filename):
 
     return data
 
+
+def DisplayZoneContent(zoneString, originName):
+
+    zone = dns.zone.from_text(zoneString, origin = originName)
+
+    for (name, ttl, rdata) in zone.iterate_rdatas():
+        logging.info("%10s %8d %3d %s", name.to_text(), ttl, rdata.extended_rdatatype(), rdata.to_text())
+
+
 if __name__ == '__main__':
 
     args = GetArguments(sys.argv)
@@ -57,6 +69,11 @@ if __name__ == '__main__':
 
     confData = LoadConfig(args[CONFIG_FILE])
     agentConf = json.loads(confData)
+
+    if OUTPUT_COUNT in args:
+        outputCount = args[OUTPUT_COUNT]
+    else:
+        outputCount = 0
 
     try:
 
@@ -69,6 +86,9 @@ if __name__ == '__main__':
         zoneCount = confSSDB.hsize("DNS-Zones")
         logging.info("Total zone file: %d", zoneCount)
 
+        if outputCount != 0:
+            zoneCount = outputCount
+
         zoneNameList = confSSDB.hkeys("DNS-Zones", "", "", zoneCount)
 
         for zoneName in zoneNameList:
@@ -79,6 +99,10 @@ if __name__ == '__main__':
             zonefd = open(outputFile, mode = "wt")
             zonefd.write(zoneContent.decode("utf-8"))
             zonefd.close()
+
+            DisplayZoneContent(zoneContent.decode("utf-8"), zoneName.decode("utf-8"))
+
+            logging.info("-------------------------------------------------------------------------")
 
     except Exception as ex:
         print(ex)
