@@ -86,10 +86,10 @@ if __name__ == '__main__':
         zoneCount = confSSDB.hsize("DNS-Zones")
         logging.info("Total zone file: %d", zoneCount)
 
-        if outputCount != 0:
-            zoneCount = outputCount
+        if outputCount == 0:
+            outputCount = zoneCount
 
-        zoneNameList = confSSDB.hkeys("DNS-Zones", "", "", zoneCount)
+        zoneNameList = confSSDB.hkeys("DNS-Zones", "", "", outputCount)
 
         for zoneName in zoneNameList:
             zoneContent = confSSDB.hget("DNS-Zones", zoneName.decode("utf-8"))
