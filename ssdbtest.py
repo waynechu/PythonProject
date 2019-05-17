@@ -5,11 +5,9 @@ import sys
 from pyssdb import pyssdb
 
 CONFIG_FILE = 1
-OUTPUT_DIR  = 2
 
 ARGUMENT_LIST = [
     [CONFIG_FILE, "-f", "<config_file_name>", True],
-    [OUTPUT_DIR, "-o", "<output_directory>", True]
 ]
 
 def PrintUsage():
@@ -62,23 +60,12 @@ if __name__ == '__main__':
 
         logging.info("Connecting to %s:%i(%i) ...", agentConf["SSDB"]["Host"], agentConf["SSDB"]["Port"], agentConf["SSDB"]["Timeout"])
         confSSDB = pyssdb.Client(host = agentConf["SSDB"]["Host"], port = agentConf["SSDB"]["Port"], socket_timeout = agentConf["SSDB"]["Timeout"])
+        logging.info("Connection established -- OK")
 
-        logging.info("Sending credential ...")
-        confSSDB.auth(agentConf["SSDB"]["Passcode"])
-
-        zoneCount = confSSDB.hsize("DNS-Zones")
-        logging.info("Total zone file: %d", zoneCount)
-
-        zoneNameList = confSSDB.hkeys("DNS-Zones", "", "", zoneCount)
-
-        for zoneName in zoneNameList:
-            zoneContent = confSSDB.hget("DNS-Zones", zoneName.decode("utf-8"))
-            outputFile = os.path.join(args[OUTPUT_DIR], zoneName.decode("utf-8") + "zone")
-            logging.info("  Output %s to %s", zoneName.decode("utf-8"), outputFile)
-    
-            zonefd = open(outputFile, mode = "wt")
-            zonefd.write(zoneContent.decode("utf-8"))
-            zonefd.close()
+        if ("Passcode" in agentConf["SSDB"]):
+            logging.info("Sending credential ...")
+            confSSDB.auth(agentConf["SSDB"]["Passcode"])
+            logging.info("Credential authenticated -- OK")
 
     except Exception as ex:
         print(ex)
@@ -87,3 +74,5 @@ if __name__ == '__main__':
         if confSSDB != None:
             logging.info("Disconnecting from SSDB ...")
             confSSDB.disconnect()
+            logging.info("Finish -- OK")
+
