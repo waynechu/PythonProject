@@ -59,10 +59,12 @@ if __name__ == '__main__':
 
         zones = gvtZones["zones"]
         for zone in zones:
+            zoneName = zone["name"]
             dnsInfos = zone["dns_info"]
             Idx = 0
             for dnsInfo in dnsInfos:
                 Idx = Idx + 1
+                dnsIP = dnsInfo["server"]
                 logging.info(dnsInfo)
 
     except Exception as ex:
